@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnyChat</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <aside class="sidebar">
+        <div class="logo">AnyChat</div>
+        <button class="new-chat">+ New chat</button>
+        <div class="conversations">
+            <h3>Today</h3>
+            <ul>
+                <li>Web Design Workflow</li>
+                <li class="active">Weather Dynamics</li>
+            </ul>
+            <h3>Previous 7 days</h3>
+            <ul>
+                <li>Photo generation</li>
+            </ul>
+        </div>
+        <div class="profile">
+            <img src="https://placehold.co/40x40" alt="avatar" class="avatar">
+            <span class="name">Emily</span>
+            <button class="more">...</button>
+            <button class="upgrade">Upgrade to Pro</button>
+        </div>
+    </aside>
+    <main class="chat-area">
+        <header class="chat-header">
+            <h1>Weather Dynamics</h1>
+            <div class="actions">
+                <button title="Plugins">&#128295;</button>
+                <button title="Share">&#128257;</button>
+                <button title="Delete">&#128465;</button>
+            </div>
+        </header>
+        <div class="messages">
+            <div class="message user">Why does the weather not just stay the same?</div>
+            <div class="message assistant">
+                <h2>Atmospheric Dynamics</h2>
+                <p>Large-scale movement of air causes continual changes in pressure and temperature.</p>
+                <h2>Solar Influence</h2>
+                <p>The sun heats the earth unevenly creating cycles that drive different weather patterns.</p>
+            </div>
+            <button class="toggle-prompts">Hide Prompts</button>
+            <div class="quick-prompts">
+                <button>Show me the temperature today</button>
+                <button>Why does it rain</button>
+            </div>
+            <button class="regenerate">Regenerate</button>
+        </div>
+        <form class="input-area">
+            <input type="text" placeholder="Send your message" />
+            <button type="submit">&#128073;</button>
+        </form>
+        <footer class="footer">
+            <small>Responses may be inaccurate. <a href="#">Privacy Notice</a></small>
+        </footer>
+    </main>
+</div>
+</body>
+</html>
