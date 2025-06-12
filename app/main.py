@@ -1,9 +1,16 @@
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from transformers import pipeline
 from transformers.pipelines import Pipeline
 
 app = FastAPI(title="ElaraLM")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+templates = Jinja2Templates(directory="app/templates")
+
 
 text_generator: Pipeline | None = None
 
@@ -36,6 +43,7 @@ def generate_text(prompt: Prompt):
     result = pipeline_fn(prompt.text, max_length=50)
     return {"result": result[0]["generated_text"]}
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to ElaraLM"}
+@app.get("/", response_class=HTMLResponse)
+def landing(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+n

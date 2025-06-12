@@ -9,7 +9,7 @@ This project provides a simple FastAPI interface for interacting with a language
    ```bash
    docker-compose up --build
    ```
-
+   
 2. Open your browser at `http://localhost:8000` to see the welcome message.
 
 3. Send a POST request to `http://localhost:8000/generate` with JSON body `{ "text": "Your prompt" }` to generate text.
