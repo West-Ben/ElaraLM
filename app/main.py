@@ -46,4 +46,3 @@ def generate_text(prompt: Prompt):
 @app.get("/", response_class=HTMLResponse)
 def landing(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-n
