@@ -1,5 +1,8 @@
 fastapi
 uvicorn[standard]
 transformers
-
 jinja2
+openai-whisper
+pydub
+ffmpeg-python
+
