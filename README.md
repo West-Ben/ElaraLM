@@ -29,3 +29,5 @@ Run the application:
 ```bash
 uvicorn app.main:app --reload
 ```
+
+For a detailed list of features and UI layout, see [docs/system_requirements.md](docs/system_requirements.md).
