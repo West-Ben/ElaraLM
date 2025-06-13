@@ -14,6 +14,8 @@ This project provides a simple FastAPI interface for interacting with a language
 
 3. Send a POST request to `http://localhost:8000/generate` with JSON body `{ "text": "Your prompt" }` to generate text.
 
+The UI now includes a microphone button for streaming audio directly to the server. Clicking the button will request microphone permissions and visualize the incoming audio while transcribed text is displayed live in the chat.
+
 ## Development
 
 Install dependencies locally:
