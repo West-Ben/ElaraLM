@@ -156,6 +156,24 @@ body {
     border-radius: 0 20px 20px 0;
     cursor: pointer;
 }
+.input-area #mic-button {
+    margin-left: 10px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+}
+.input-area #mic-button.active {
+    background: #6200ee;
+    color: #fff;
+}
+
+#visualizer {
+    width: 100%;
+    margin-top: 10px;
+    background: #f3f3f3;
+    border-radius: 4px;
+}
 .footer {
     text-align: center;
     margin-top: 20px;

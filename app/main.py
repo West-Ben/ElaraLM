@@ -1,5 +1,5 @@
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -46,3 +46,17 @@ def generate_text(prompt: Prompt):
 @app.get("/", response_class=HTMLResponse)
 def landing(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.websocket("/ws/audio")
+async def audio_stream(websocket: WebSocket):
+    """Receive audio chunks and return dummy transcription."""
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_bytes()
+            # Placeholder STT processing
+            text = f"Received {len(data)} bytes"
+            await websocket.send_json({"text": text})
+    except WebSocketDisconnect:
+        pass
