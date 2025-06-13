@@ -3,6 +3,7 @@ let micButton = null;
 let visualizerCanvas = null;
 let ws = null;
 let mediaRecorder = null;
+let sttOutput = null;
 let audioContext = null;
 let analyser = null;
 let animationId = null;
@@ -15,6 +16,7 @@ let micStream = null;
 function setup() {
     micButton = document.getElementById('mic-button');
     visualizerCanvas = document.getElementById('visualizer');
+    sttOutput = document.getElementById('stt-output');
     if (!micButton) return;
 
     voiceActivated = localStorage.getItem('voiceActivated') === 'true';
@@ -70,7 +72,7 @@ function beginStreaming(stream) {
     ws = new WebSocket(`ws://${window.location.host}/ws/audio`);
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        appendMessage(data.text);
+        appendTranscription(data.text, data.confidence);
     };
 
     mediaRecorder = new MediaRecorder(stream);
@@ -156,6 +158,17 @@ function appendMessage(text) {
     div.textContent = text;
     messagesDiv.appendChild(div);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function appendTranscription(text, confidence) {
+    if (!sttOutput) return;
+    const span = document.createElement('span');
+    if (confidence !== undefined && confidence < 0.65) {
+        span.className = 'uncertain';
+    }
+    span.textContent = text + ' ';
+    sttOutput.appendChild(span);
+    sttOutput.scrollTop = sttOutput.scrollHeight;
 }
 
 document.addEventListener('DOMContentLoaded', setup);

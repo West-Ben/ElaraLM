@@ -180,6 +180,22 @@ body {
     background: #f3f3f3;
     border-radius: 4px;
 }
+.stt-container {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+    max-height: 120px;
+    overflow-y: auto;
+}
+.stt-container h2 {
+    margin-top: 0;
+    font-size: 1rem;
+}
+.stt-text .uncertain {
+    color: #b00020;
+    text-decoration: underline;
+}
 .footer {
     text-align: center;
     margin-top: 20px;
