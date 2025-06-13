@@ -48,6 +48,12 @@ def landing(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.get("/settings", response_class=HTMLResponse)
+def settings_page(request: Request):
+    """Render the settings page."""
+    return templates.TemplateResponse("settings.html", {"request": request})
+
+
 @app.websocket("/ws/audio")
 async def audio_stream(websocket: WebSocket):
     """Receive audio chunks and return dummy transcription."""
