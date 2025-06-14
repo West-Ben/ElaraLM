@@ -36,22 +36,6 @@ body {
     color: #000;
     text-decoration: none;
 }
-.conversations h3 {
-    margin: 15px 0 5px;
-    font-size: 0.9rem;
-}
-.conversations ul {
-    list-style: none;
-    padding: 0;
-}
-.conversations li {
-    padding: 5px 0;
-    border-radius: 6px;
-}
-.conversations li.active {
-    background: #fff;
-    padding-left: 5px;
-}
 .profile {
     display: flex;
     flex-direction: column;
@@ -64,21 +48,6 @@ body {
     margin-top: 8px;
     font-weight: 600;
 }
-.profile button.more {
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin: 5px 0;
-}
-.profile button.upgrade {
-    background: #000;
-    color: #fff;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 10px;
-}
 .chat-area {
     flex: 1;
     background: #fff;
@@ -89,19 +58,12 @@ body {
 }
 .chat-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: flex-start;
 }
 .chat-header h1 {
     margin: 0;
     font-size: 1.2rem;
-}
-.chat-header .actions button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-left: 10px;
-    font-size: 1.1rem;
 }
 .messages {
     flex: 1;
@@ -121,26 +83,6 @@ body {
 .message.assistant {
     background: #fff;
     border: 1px solid #eee;
-}
-.toggle-prompts,
-.regenerate {
-    background: #ffdce5;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin: 10px 0;
-}
-.quick-prompts {
-    display: flex;
-    gap: 10px;
-}
-.quick-prompts button {
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    padding: 6px 10px;
-    cursor: pointer;
 }
 .input-area {
     display: flex;
