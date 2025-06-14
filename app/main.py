@@ -12,6 +12,8 @@ from pydub import AudioSegment
 import numpy as np
 import io
 import asyncio
+import base64
+import time
 
 app = FastAPI(title="ElaraLM")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -101,13 +103,24 @@ async def audio_stream(websocket: WebSocket):
     await websocket.accept()
     buffer = bytearray()
     threshold = 20000  # bytes before transcription
+    start_ts = time.time()
     try:
         while True:
             data = await websocket.receive_bytes()
             buffer.extend(data)
             if len(buffer) >= threshold:
-                text, conf = await transcribe_audio(bytes(buffer))
-                await websocket.send_json({"text": text, "final": True, "confidence": conf})
+                audio_bytes = bytes(buffer)
+                text, conf = await transcribe_audio(audio_bytes)
+                await websocket.send_json(
+                    {
+                        "text": text,
+                        "final": True,
+                        "confidence": conf,
+                        "timestamp": start_ts,
+                        "audio": base64.b64encode(audio_bytes).decode("ascii"),
+                    }
+                )
                 buffer.clear()
+                start_ts = time.time()
     except WebSocketDisconnect:
         pass

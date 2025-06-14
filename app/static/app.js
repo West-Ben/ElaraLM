@@ -4,6 +4,7 @@ let visualizerCanvas = null;
 let ws = null;
 let mediaRecorder = null;
 let sttOutput = null;
+let tooltip = null;
 let audioContext = null;
 let analyser = null;
 let animationId = null;
@@ -12,16 +13,22 @@ let vadTimeout = null;
 const vadThreshold = 0.02; // simple RMS threshold
 const silenceTimeout = 1000; // ms
 let micStream = null;
+let feedbackThreshold = parseFloat(localStorage.getItem('confidenceThreshold') || '0.65');
+let feedbackEnabled = localStorage.getItem('feedbackEnabled') !== 'false';
+let feedbackMode = localStorage.getItem('feedbackMode') || 'persistent';
 
 function setup() {
     micButton = document.getElementById('mic-button');
     visualizerCanvas = document.getElementById('visualizer');
     sttOutput = document.getElementById('stt-output');
+    tooltip = document.getElementById('tooltip');
     if (!micButton) return;
 
     voiceActivated = localStorage.getItem('voiceActivated') === 'true';
 
     micButton.addEventListener('click', toggleMic);
+    sttOutput.addEventListener('mouseover', showTooltip);
+    sttOutput.addEventListener('mouseout', hideTooltip);
 }
 
 async function toggleMic() {
@@ -72,7 +79,7 @@ function beginStreaming(stream) {
     ws = new WebSocket(`ws://${window.location.host}/ws/audio`);
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        appendTranscription(data.text, data.confidence);
+        appendTranscription(data.text, data.confidence, data.timestamp, data.audio);
     };
 
     mediaRecorder = new MediaRecorder(stream);
@@ -160,15 +167,65 @@ function appendMessage(text) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-function appendTranscription(text, confidence) {
+function appendTranscription(text, confidence, timestamp, audioB64) {
     if (!sttOutput) return;
+    feedbackThreshold = parseFloat(localStorage.getItem('confidenceThreshold') || feedbackThreshold);
+    feedbackEnabled = localStorage.getItem('feedbackEnabled') !== 'false';
+    feedbackMode = localStorage.getItem('feedbackMode') || feedbackMode;
+
     const span = document.createElement('span');
-    if (confidence !== undefined && confidence < 0.65) {
-        span.className = 'uncertain';
+    if (feedbackEnabled && confidence !== undefined && confidence < feedbackThreshold) {
+        span.classList.add('uncertain');
+        if (feedbackMode === 'temporary') {
+            setTimeout(() => span.classList.remove('uncertain'), 5000);
+        }
     }
     span.textContent = text + ' ';
+    if (confidence !== undefined) span.dataset.confidence = confidence.toFixed(2);
+    if (timestamp) span.dataset.timestamp = new Date(timestamp * 1000).toLocaleTimeString();
+    if (audioB64) span.dataset.audio = audioB64;
+
+    if (audioB64) {
+        const btn = document.createElement('button');
+        btn.textContent = '⏵';
+        btn.className = 'replay';
+        btn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            const blob = b64ToBlob(audioB64, 'audio/webm');
+            const url = URL.createObjectURL(blob);
+            const a = new Audio(url);
+            a.play();
+        });
+        span.appendChild(btn);
+    }
+
     sttOutput.appendChild(span);
     sttOutput.scrollTop = sttOutput.scrollHeight;
+}
+
+function showTooltip(e) {
+    const target = e.target.closest('span');
+    if (!target || !tooltip) return;
+    if (!target.dataset.confidence) return;
+    let text = `Conf: ${target.dataset.confidence}`;
+    if (target.dataset.timestamp) text += ` | ${target.dataset.timestamp}`;
+    tooltip.textContent = text;
+    tooltip.style.left = e.pageX + 'px';
+    tooltip.style.top = (e.pageY - 30) + 'px';
+    tooltip.style.display = 'block';
+}
+
+function hideTooltip() {
+    if (tooltip) tooltip.style.display = 'none';
+}
+
+function b64ToBlob(b64, mime) {
+    const byteChars = atob(b64);
+    const byteNums = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+        byteNums[i] = byteChars.charCodeAt(i);
+    }
+    return new Blob([new Uint8Array(byteNums)], { type: mime });
 }
 
 document.addEventListener('DOMContentLoaded', setup);

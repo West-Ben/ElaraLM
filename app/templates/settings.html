@@ -7,11 +7,26 @@
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-<div class="container" style="padding:20px;">
+<div class="settings-wrapper">
     <h1>Settings</h1>
     <label>
         <input type="checkbox" id="voice-toggle">
         Voice Activation
+    </label>
+    <label>
+        Confidence Threshold
+        <input type="number" id="confidence-threshold" min="0" max="1" step="0.05">
+    </label>
+    <label>
+        <input type="checkbox" id="feedback-toggle" checked>
+        Enable Transcription Feedback
+    </label>
+    <label>
+        Feedback Mode
+        <select id="feedback-mode">
+            <option value="persistent">Persistent</option>
+            <option value="temporary">Temporary</option>
+        </select>
     </label>
     <p><a href="/">Back to chat</a></p>
 </div>
