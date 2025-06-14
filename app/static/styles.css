@@ -229,3 +229,40 @@ body {
     font-size: 0.8rem;
     color: #555;
 }
+
+.settings-wrapper {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    font-size: 0.9rem;
+}
+
+.settings-wrapper h1 {
+    margin-top: 0;
+}
+
+.settings-wrapper label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.settings-wrapper input[type="number"],
+.settings-wrapper select {
+    padding: 4px 8px;
+    font-size: 1rem;
+}
+
+.settings-wrapper input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.settings-wrapper a {
+    color: #6200ee;
+    text-decoration: none;
+}
