@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Testing</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="top-bar">
+    <h1>AnyChat AI</h1>
+    <nav class="nav-menu">
+        <a href="/">Chat</a>
+        <a href="/pipeline">Pipeline</a>
+        <a href="/testing" class="active">Testing</a>
+        <a href="/settings">Settings</a>
+    </nav>
+</header>
+<div class="testing-wrapper">
+    <h2>🧪 Model Testing</h2>
+    <div class="tabs">
+        <button class="tab active" data-target="stt-tab">Speech-to-Text</button>
+        <button class="tab" data-target="tts-tab">Text-to-Speech</button>
+        <button class="tab" data-target="llm-tab">LLM</button>
+    </div>
+    <div class="tab-content" id="stt-tab">
+        <button id="test-mic" class="mic-btn">🎤</button>
+        <canvas id="test-wave" width="300" height="80"></canvas>
+        <div id="test-transcript" class="test-transcript"></div>
+    </div>
+    <div class="tab-content" id="tts-tab" style="display:none;">
+        <input type="text" id="tts-input" placeholder="Type something to speak..." />
+        <button id="tts-play">Play</button>
+        <div id="tts-status"></div>
+    </div>
+    <div class="tab-content" id="llm-tab" style="display:none;">
+        <textarea id="llm-prompt" rows="3" placeholder="Prompt"></textarea>
+        <button id="llm-send">Send</button>
+        <pre id="llm-response"></pre>
+    </div>
+</div>
+<script src="/static/app.js"></script>
+<script>
+// simple tabs
+const tabs = document.querySelectorAll('.tab');
+const contents = document.querySelectorAll('.tab-content');
+for (const t of tabs) {
+  t.addEventListener('click', () => {
+    tabs.forEach(b => b.classList.remove('active'));
+    t.classList.add('active');
+    contents.forEach(c => c.style.display = c.id === t.dataset.target ? 'block' : 'none');
+  });
+}
+</script>
+</body>
+</html>

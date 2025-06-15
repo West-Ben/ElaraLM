@@ -9,31 +9,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
+<header class="top-bar">
+    <h1>AnyChat AI</h1>
+    <div class="voice-indicator" id="voice-indicator"></div>
+    <nav class="nav-menu">
+        <a href="/" class="active">Chat</a>
+        <a href="/pipeline">Pipeline</a>
+        <a href="/testing">Testing</a>
+        <a href="/settings">Settings</a>
+    </nav>
+</header>
 <div class="container">
     <aside class="sidebar">
-        <div class="logo">AnyChat</div>
-        <button class="new-chat">+ New chat</button>
-        <a href="/settings" class="settings-link">Settings</a>
-        <div class="profile">
-            <img src="https://placehold.co/40x40" alt="avatar" class="avatar">
-            <span class="name">Emily</span>
-        </div>
+        <div class="logo">AnyChat AI</div>
+        <button class="new-chat">+ New Chat</button>
+        <div class="conversation-list"></div>
     </aside>
     <main class="chat-area">
         <div class="stt-container">
-            <h2>You said:</h2>
+            <h2>🎤 Your Speech</h2>
             <div id="stt-output" class="stt-text"></div>
             <div id="tooltip" class="tooltip" style="display:none;"></div>
         </div>
-        <header class="chat-header">
-            <h1>Weather Dynamics</h1>
-        </header>
-        <div class="messages">
+        <div class="ai-response">
+            <h2>🧠 AI Response</h2>
+            <div id="ai-output"></div>
         </div>
+        <div class="messages"></div>
         <form class="input-area">
             <input type="text" placeholder="Send your message" />
             <button type="submit">&#128073;</button>
-            <button type="button" id="mic-button" title="Toggle microphone">🎤</button>
+            <div class="mic-wrapper">
+                <button type="button" id="mic-button" title="Toggle microphone">🎤</button>
+                <div id="voice-ring" class="voice-ring"></div>
+            </div>
+            <button type="button" id="speaker" class="speaker" title="Audio playback">🔊</button>
         </form>
         <canvas id="visualizer" width="300" height="80"></canvas>
         <footer class="footer">

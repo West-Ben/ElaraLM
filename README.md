@@ -10,7 +10,8 @@ This project provides a simple FastAPI interface for interacting with a language
    docker-compose up --build
    ```
    
-2. Open your browser at `http://localhost:8000` to see the welcome message.
+2. Open your browser at `http://localhost:8000` to see the chat interface. Use the
+   navigation menu to access the Pipeline, Testing and Settings pages.
 
 3. Send a POST request to `http://localhost:8000/generate` with JSON body `{ "text": "Your prompt" }` to generate text.
 
