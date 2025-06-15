@@ -1,0 +1,5 @@
+{
+  "type": "coqui",
+  "model_name": "tts_models/en/ljspeech/tacotron2-DDC",
+  "vocoder_name": "vocoder_models/en/ljspeech/hifigan_v2"
+}

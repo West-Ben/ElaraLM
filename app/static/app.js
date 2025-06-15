@@ -18,6 +18,8 @@ let micStream = null;
 let feedbackThreshold = parseFloat(localStorage.getItem('confidenceThreshold') || '0.65');
 let feedbackEnabled = localStorage.getItem('feedbackEnabled') !== 'false';
 let feedbackMode = localStorage.getItem('feedbackMode') || 'persistent';
+let aiOutputElem = null;
+let chatInput = null;
 
 function setup() {
     micButton = document.getElementById('mic-button');
@@ -26,13 +28,41 @@ function setup() {
     tooltip = document.getElementById('tooltip');
     voiceIndicator = document.getElementById('voice-indicator');
     voiceRing = document.getElementById('voice-ring');
-    if (!micButton) return;
+    const ttsInput = document.getElementById('tts-input');
+    const ttsPlay = document.getElementById('tts-play');
+    aiOutputElem = document.getElementById('ai-output');
+    chatInput = document.querySelector('.input-area input[type="text"]');
+    const chatForm = document.querySelector('.input-area');
+    const speakBtn = document.getElementById('speaker');
 
     voiceActivated = localStorage.getItem('voiceActivated') === 'true';
 
-    micButton.addEventListener('click', toggleMic);
-    sttOutput.addEventListener('mouseover', showTooltip);
-    sttOutput.addEventListener('mouseout', hideTooltip);
+    if (micButton) micButton.addEventListener('click', toggleMic);
+    if (sttOutput) {
+        sttOutput.addEventListener('mouseover', showTooltip);
+        sttOutput.addEventListener('mouseout', hideTooltip);
+    }
+    if (ttsPlay && ttsInput) {
+        ttsPlay.addEventListener('click', () => speakText(ttsInput.value));
+    }
+    if (chatForm && chatInput) {
+        chatForm.addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+            chatInput.value = '';
+            const res = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            const data = await res.json();
+            if (aiOutputElem) aiOutputElem.textContent = data.result;
+        });
+    }
+    if (speakBtn && aiOutputElem) {
+        speakBtn.addEventListener('click', () => speakText(aiOutputElem.textContent));
+    }
 }
 
 async function toggleMic() {
@@ -242,3 +272,22 @@ function b64ToBlob(b64, mime) {
 }
 
 document.addEventListener('DOMContentLoaded', setup);
+
+function speakText(text) {
+    if (!text) return;
+    const ws = new WebSocket(`ws://${window.location.host}/ws/tts`);
+    const chunks = [];
+    ws.binaryType = 'arraybuffer';
+    ws.onmessage = (ev) => {
+        if (ev.data.byteLength === 0) {
+            const blob = new Blob(chunks, { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            audio.play();
+            ws.close();
+        } else {
+            chunks.push(ev.data);
+        }
+    };
+    ws.onopen = () => ws.send(text);
+}
