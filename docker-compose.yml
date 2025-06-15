@@ -3,4 +3,4 @@ services:
   elara:
     build: .
     ports:
-      - "8000:8000"
+      - "8081:8081"
