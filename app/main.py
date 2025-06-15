@@ -15,6 +15,7 @@ import io
 import asyncio
 import base64
 import time
+from . import tts
 
 app = FastAPI(title="ElaraLM")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -137,5 +138,32 @@ async def audio_stream(websocket: WebSocket):
                 )
                 buffer.clear()
                 start_ts = time.time()
+    except WebSocketDisconnect:
+        pass
+
+
+@app.get("/tts/models")
+def get_tts_models():
+    """Return available TTS model names and current selection."""
+    return {"models": tts.list_models(), "selected": tts.get_selected_model()}
+
+
+@app.post("/tts/select")
+def select_tts_model(name: str):
+    """Set the active TTS model."""
+    tts.select_model(name)
+    return {"selected": name}
+
+
+@app.websocket("/ws/tts")
+async def tts_stream(websocket: WebSocket):
+    """Stream synthesized audio bytes for text sent by the client."""
+    await websocket.accept()
+    try:
+        while True:
+            text = await websocket.receive_text()
+            async for chunk in tts.synthesize_stream(text):
+                await websocket.send_bytes(chunk)
+            await websocket.send_bytes(b"")
     except WebSocketDisconnect:
         pass
