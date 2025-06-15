@@ -1,5 +1,6 @@
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+import logging
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -18,6 +19,7 @@ import time
 app = FastAPI(title="ElaraLM")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+logger = logging.getLogger(__name__)
 
 
 text_generator: Pipeline | None = None
@@ -97,6 +99,18 @@ def settings_page(request: Request):
     return templates.TemplateResponse("settings.html", {"request": request})
 
 
+@app.get("/pipeline", response_class=HTMLResponse)
+def pipeline_page(request: Request):
+    """Render the pipeline visualization page."""
+    return templates.TemplateResponse("pipeline.html", {"request": request})
+
+
+@app.get("/testing", response_class=HTMLResponse)
+def testing_page(request: Request):
+    """Render the model testing page."""
+    return templates.TemplateResponse("testing.html", {"request": request})
+
+
 @app.websocket("/ws/audio")
 async def audio_stream(websocket: WebSocket):
     """Receive audio chunks and stream transcription results."""
@@ -111,6 +125,7 @@ async def audio_stream(websocket: WebSocket):
             if len(buffer) >= threshold:
                 audio_bytes = bytes(buffer)
                 text, conf = await transcribe_audio(audio_bytes)
+                logger.info("Whisper transcription: %s (%.2f)", text, conf)
                 await websocket.send_json(
                     {
                         "text": text,

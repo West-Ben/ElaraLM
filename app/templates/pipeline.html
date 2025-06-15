@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="top-bar">
+    <h1>AnyChat AI</h1>
+    <nav class="nav-menu">
+        <a href="/">Chat</a>
+        <a href="/pipeline" class="active">Pipeline</a>
+        <a href="/testing">Testing</a>
+        <a href="/settings">Settings</a>
+    </nav>
+</header>
+<div class="pipeline-wrapper">
+    <h2>⚙️ AI Pipeline Visualization</h2>
+    <div class="pipeline-diagram">
+        <div class="node">Microphone</div>
+        <div class="arrow">→</div>
+        <div class="node">Speech-to-Text</div>
+        <div class="arrow">→</div>
+        <div class="node">LLM</div>
+        <div class="arrow">→</div>
+        <div class="node">Text-to-Speech</div>
+        <div class="arrow">→</div>
+        <div class="node">Speaker</div>
+    </div>
+    <aside class="pipeline-logs">
+        <h3>Logs</h3>
+        <ul id="log-list"></ul>
+    </aside>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>

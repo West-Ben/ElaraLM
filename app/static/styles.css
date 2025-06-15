@@ -4,6 +4,44 @@ body {
     margin: 0;
     padding: 0;
 }
+
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    padding: 10px 20px;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.nav-menu a {
+    margin-left: 15px;
+    color: #000;
+    text-decoration: none;
+}
+.nav-menu a.active {
+    font-weight: 600;
+}
+.voice-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    margin-left: auto;
+    margin-right: 10px;
+}
+.voice-indicator.active {
+    animation: pulse 1s infinite;
+    background: #6200ee;
+}
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(98,0,238,0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(98,0,238,0); }
+    100% { box-shadow: 0 0 0 0 rgba(98,0,238,0); }
+}
+
 .container {
     display: flex;
     height: 100vh;
@@ -104,12 +142,38 @@ body {
     border-radius: 0 20px 20px 0;
     cursor: pointer;
 }
+.input-area .speaker {
+    margin-left: 10px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+}
 .input-area #mic-button {
     margin-left: 10px;
     border-radius: 50%;
     width: 40px;
     height: 40px;
     padding: 0;
+}
+.mic-wrapper {
+    position: relative;
+    display: inline-block;
+}
+.voice-ring {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 0 0 rgba(98,0,238,0.4);
+    opacity: 0;
+}
+.voice-ring.active {
+    animation: pulse 1s infinite;
+    opacity: 1;
 }
 .input-area #mic-button.active {
     background: #6200ee;
@@ -130,6 +194,14 @@ body {
     max-height: 120px;
     overflow-y: auto;
     position: relative;
+}
+.ai-response {
+    border: 2px solid #eee;
+    background: #fff;
+    padding: 10px;
+    margin-bottom: 10px;
+    max-height: 150px;
+    overflow-y: auto;
 }
 .stt-container h2 {
     margin-top: 0;
@@ -207,4 +279,52 @@ body {
 .settings-wrapper a {
     color: #6200ee;
     text-decoration: none;
+}
+
+/* Pipeline and Testing */
+.pipeline-wrapper, .testing-wrapper {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+.pipeline-diagram {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.pipeline-diagram .node {
+    padding: 10px 15px;
+    background: #f3f3f3;
+    border-radius: 6px;
+}
+.pipeline-diagram .arrow {
+    font-size: 1.2rem;
+}
+.pipeline-logs {
+    max-height: 150px;
+    overflow-y: auto;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.tab {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.tab.active {
+    background: #6200ee;
+    color: #fff;
 }

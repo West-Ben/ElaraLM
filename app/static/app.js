@@ -5,6 +5,8 @@ let ws = null;
 let mediaRecorder = null;
 let sttOutput = null;
 let tooltip = null;
+let voiceIndicator = null;
+let voiceRing = null;
 let audioContext = null;
 let analyser = null;
 let animationId = null;
@@ -22,6 +24,8 @@ function setup() {
     visualizerCanvas = document.getElementById('visualizer');
     sttOutput = document.getElementById('stt-output');
     tooltip = document.getElementById('tooltip');
+    voiceIndicator = document.getElementById('voice-indicator');
+    voiceRing = document.getElementById('voice-ring');
     if (!micButton) return;
 
     voiceActivated = localStorage.getItem('voiceActivated') === 'true';
@@ -51,6 +55,8 @@ async function startRecording() {
         if (!voiceActivated) {
             beginStreaming(micStream);
         }
+        if (voiceIndicator) voiceIndicator.classList.add('active');
+        if (voiceRing) voiceRing.classList.add('active');
     } catch (err) {
         console.error('Mic access denied:', err);
         alert('Microphone access denied.');
@@ -72,6 +78,8 @@ function stopRecording() {
         clearTimeout(vadTimeout);
         vadTimeout = null;
     }
+    if (voiceIndicator) voiceIndicator.classList.remove('active');
+    if (voiceRing) voiceRing.classList.remove('active');
 }
 
 function beginStreaming(stream) {
@@ -80,6 +88,9 @@ function beginStreaming(stream) {
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         appendTranscription(data.text, data.confidence, data.timestamp, data.audio);
+        if (data.text) {
+            appendMessage(data.text, 'user');
+        }
     };
 
     mediaRecorder = new MediaRecorder(stream);
@@ -90,6 +101,7 @@ function beginStreaming(stream) {
     });
     mediaRecorder.start(250);
     micButton.classList.add('active');
+    if (voiceRing) voiceRing.classList.add('active');
 }
 
 function stopStreaming() {
@@ -102,6 +114,7 @@ function stopStreaming() {
         ws = null;
     }
     micButton.classList.remove('active');
+    if (voiceRing) voiceRing.classList.remove('active');
 }
 
 
@@ -158,10 +171,10 @@ function visualize() {
     draw();
 }
 
-function appendMessage(text) {
+function appendMessage(text, role = 'user') {
     const messagesDiv = document.querySelector('.messages');
     const div = document.createElement('div');
-    div.className = 'message stt';
+    div.className = `message ${role}`;
     div.textContent = text;
     messagesDiv.appendChild(div);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
