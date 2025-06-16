@@ -20,6 +20,13 @@ let feedbackEnabled = localStorage.getItem('feedbackEnabled') !== 'false';
 let feedbackMode = localStorage.getItem('feedbackMode') || 'persistent';
 let aiOutputElem = null;
 let chatInput = null;
+let speakBtn = null;
+let stopBtn = null;
+let ttsTimer = null;
+let ttsQueue = [];
+let speaking = false;
+let speakWs = null;
+let currentAudio = null;
 
 function setup() {
     micButton = document.getElementById('mic-button');
@@ -33,7 +40,8 @@ function setup() {
     aiOutputElem = document.getElementById('ai-output');
     chatInput = document.querySelector('.input-area input[type="text"]');
     const chatForm = document.querySelector('.input-area');
-    const speakBtn = document.getElementById('speaker');
+    speakBtn = document.getElementById('speak-now');
+    stopBtn = document.getElementById('stop-speak');
 
     voiceActivated = localStorage.getItem('voiceActivated') === 'true';
 
@@ -57,11 +65,26 @@ function setup() {
                 body: JSON.stringify({ text })
             });
             const data = await res.json();
-            if (aiOutputElem) aiOutputElem.textContent = data.result;
+            if (aiOutputElem) {
+                aiOutputElem.value = data.result;
+                if (ttsTimer) clearTimeout(ttsTimer);
+                ttsTimer = setTimeout(() => speakText(aiOutputElem.value), 1000);
+            }
         });
     }
     if (speakBtn && aiOutputElem) {
-        speakBtn.addEventListener('click', () => speakText(aiOutputElem.textContent));
+        speakBtn.addEventListener('click', () => {
+            if (ttsTimer) { clearTimeout(ttsTimer); ttsTimer = null; }
+            speakText(aiOutputElem.value);
+        });
+    }
+    if (stopBtn) {
+        stopBtn.addEventListener('click', stopSpeaking);
+    }
+    if (aiOutputElem) {
+        aiOutputElem.addEventListener('input', () => {
+            if (ttsTimer) { clearTimeout(ttsTimer); ttsTimer = null; }
+        });
     }
 }
 
@@ -275,19 +298,41 @@ document.addEventListener('DOMContentLoaded', setup);
 
 function speakText(text) {
     if (!text) return;
-    const ws = new WebSocket(`ws://${window.location.host}/ws/tts`);
+    ttsQueue.push(text);
+    processSpeechQueue();
+}
+
+function processSpeechQueue() {
+    if (speaking || ttsQueue.length === 0) return;
+    const text = ttsQueue.shift();
+    speaking = true;
+    if (stopBtn) stopBtn.style.display = 'inline-block';
+    speakWs = new WebSocket(`ws://${window.location.host}/ws/tts`);
     const chunks = [];
-    ws.binaryType = 'arraybuffer';
-    ws.onmessage = (ev) => {
+    speakWs.binaryType = 'arraybuffer';
+    speakWs.onmessage = (ev) => {
         if (ev.data.byteLength === 0) {
             const blob = new Blob(chunks, { type: 'audio/wav' });
             const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
-            audio.play();
-            ws.close();
+            currentAudio = new Audio(url);
+            currentAudio.addEventListener('ended', () => {
+                speaking = false;
+                if (stopBtn) stopBtn.style.display = 'none';
+                processSpeechQueue();
+            });
+            currentAudio.play();
+            speakWs.close();
         } else {
             chunks.push(ev.data);
         }
     };
-    ws.onopen = () => ws.send(text);
+    speakWs.onopen = () => speakWs.send(text);
+}
+
+function stopSpeaking() {
+    if (speakWs) { speakWs.close(); speakWs = null; }
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    speaking = false;
+    if (stopBtn) stopBtn.style.display = 'none';
+    ttsQueue = [];
 }

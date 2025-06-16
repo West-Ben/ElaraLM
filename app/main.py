@@ -1,6 +1,9 @@
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 import logging
+import csv
+import datetime as dt
+import os
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -16,11 +19,22 @@ import asyncio
 import base64
 import time
 from . import tts
+import ollama
 
 app = FastAPI(title="ElaraLM")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 logger = logging.getLogger(__name__)
+
+
+LOG_DIR = os.path.join(os.path.dirname(__file__), '..', 'logs')
+LOG_FILE = os.path.join(LOG_DIR, 'interactions.csv')
+os.makedirs(LOG_DIR, exist_ok=True)
+if not os.path.isfile(LOG_FILE):
+    with open(LOG_FILE, 'w', newline='', encoding='utf-8') as f:
+        csv.writer(f).writerow(['timestamp', 'prompt', 'response', 'tts_model'])
+
+OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL', 'llama3')
 
 
 text_generator: Pipeline | None = None
@@ -79,15 +93,44 @@ def get_pipeline() -> Pipeline:
             text_generator = _dummy
     return text_generator
 
+
+async def generate_llm(prompt: str) -> str:
+    try:
+        resp = await asyncio.to_thread(ollama.generate, model=OLLAMA_MODEL, prompt=prompt)
+        if isinstance(resp, dict):
+            return resp.get('response', '').strip()
+        return str(resp)
+    except Exception as e:
+        logger.error("LLM unreachable: %s", e)
+        with open(os.path.join(LOG_DIR, 'llm_errors.log'), 'a', encoding='utf-8') as f:
+            f.write(f"{dt.datetime.utcnow().isoformat()} {e}\n")
+        # fall back to local pipeline if available
+        pipeline_fn = get_pipeline()
+        try:
+            result = pipeline_fn(prompt, max_length=50)
+            return result[0]["generated_text"]
+        except Exception:
+            return f"[LLM unreachable] {e}"
+
+
+def log_interaction(prompt: str, response: str) -> None:
+    with open(LOG_FILE, 'a', newline='', encoding='utf-8') as f:
+        csv.writer(f).writerow([
+            dt.datetime.utcnow().isoformat(),
+            prompt,
+            response,
+            tts.get_selected_model() or ''
+        ])
+
 class Prompt(BaseModel):
     text: str
 
 @app.post("/generate")
-def generate_text(prompt: Prompt):
-    """Generate text from the provided prompt."""
-    pipeline_fn = get_pipeline()
-    result = pipeline_fn(prompt.text, max_length=50)
-    return {"result": result[0]["generated_text"]}
+async def generate_text(prompt: Prompt):
+    """Generate text from the provided prompt and log it."""
+    result = await generate_llm(prompt.text)
+    log_interaction(prompt.text, result)
+    return {"result": result}
 
 @app.get("/", response_class=HTMLResponse)
 def landing(request: Request):
