@@ -5,6 +5,7 @@ import csv
 import datetime as dt
 import os
 from fastapi.responses import HTMLResponse, JSONResponse
+
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -21,6 +22,7 @@ import time
 from . import tts
 import httpx
 
+
 app = FastAPI(title="ElaraLM")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
@@ -36,6 +38,7 @@ if not os.path.isfile(LOG_FILE):
 
 OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://localhost:11434/api/generate')
 LLMSTUDIO_URL = os.environ.get('LLMSTUDIO_URL')
+
 
 
 text_generator: Pipeline | None = None

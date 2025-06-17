@@ -72,6 +72,7 @@ function setup() {
                 ttsTimer = setTimeout(() => speakText(aiOutputElem.value), 1000);
             }
             appendMessage(data.result, 'assistant');
+
         });
     }
     if (speakBtn && aiOutputElem) {
