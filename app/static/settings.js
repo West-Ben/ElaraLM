@@ -78,4 +78,60 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const sttSelect = document.getElementById('stt-select');
+    const reloadStt = document.getElementById('reload-stt');
+
+    async function loadSttModels() {
+        const res = await fetch('/stt/models');
+        const data = await res.json();
+        if (!sttSelect) return;
+        sttSelect.innerHTML = '';
+        data.models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m;
+            if (data.selected === m) opt.selected = true;
+            sttSelect.appendChild(opt);
+        });
+    }
+
+    if (sttSelect) {
+        loadSttModels();
+        sttSelect.addEventListener('change', async () => {
+            await fetch('/stt/select?name=' + encodeURIComponent(sttSelect.value), { method: 'POST' });
+        });
+    }
+    if (reloadStt) reloadStt.addEventListener('click', loadSttModels);
+
+    const llmSelect = document.getElementById('llm-select');
+    const llmSource = document.getElementById('llm-source');
+    const reloadLlm = document.getElementById('reload-llm');
+
+    async function loadLlmModels() {
+        const source = llmSource ? llmSource.value : 'local';
+        const res = await fetch('/llm/models?source=' + source);
+        const data = await res.json();
+        if (!llmSelect) return;
+        llmSelect.innerHTML = '';
+        data.models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m;
+            llmSelect.appendChild(opt);
+        });
+    }
+
+    if (llmSource) llmSource.addEventListener('change', loadLlmModels);
+    if (llmSelect) {
+        loadLlmModels();
+        llmSelect.addEventListener('change', async () => {
+            await fetch('/llm/select', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ source: llmSource ? llmSource.value : 'local', name: llmSelect.value })
+            });
+        });
+    }
+    if (reloadLlm) reloadLlm.addEventListener('click', loadLlmModels);
 });

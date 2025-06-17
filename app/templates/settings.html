@@ -43,6 +43,20 @@
         <button id="reload-tts" type="button">Reload Models</button>
         <button id="add-tts" type="button">Add Model</button>
     </label>
+    <label>
+        Select Speech-to-Text Model
+        <select id="stt-select"></select>
+        <button id="reload-stt" type="button">Reload Models</button>
+    </label>
+    <label>
+        LLM Source
+        <select id="llm-source">
+            <option value="local">Local (Ollama)</option>
+            <option value="remote">Remote</option>
+        </select>
+        <select id="llm-select"></select>
+        <button id="reload-llm" type="button">Reload</button>
+    </label>
 </div>
 <script src="/static/settings.js"></script>
 </body>
