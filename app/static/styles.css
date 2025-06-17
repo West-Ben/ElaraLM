@@ -203,6 +203,14 @@ body {
     max-height: 150px;
     overflow-y: auto;
 }
+.ai-response textarea {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+}
+.ai-controls {
+    margin-top: 5px;
+}
 .stt-container h2 {
     margin-top: 0;
     font-size: 1rem;

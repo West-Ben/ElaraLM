@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ttsSelect = document.getElementById('tts-select');
     const reloadBtn = document.getElementById('reload-tts');
+    const addBtn = document.getElementById('add-tts');
 
     async function loadTtsModels() {
         const res = await fetch('/tts/models');
@@ -56,4 +57,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     if (reloadBtn) reloadBtn.addEventListener('click', loadTtsModels);
+    if (addBtn) {
+        addBtn.addEventListener('click', async () => {
+            const res = await fetch('/tts/available');
+            const data = await res.json();
+            const name = prompt('Enter model name to download:\n' + data.models.join('\n'));
+            if (name) {
+                const resp = await fetch('/tts/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                if (resp.ok) {
+                    await loadTtsModels();
+                    alert('Model downloaded');
+                } else {
+                    const err = await resp.json();
+                    alert('Error: ' + (err.error || 'unknown'));
+                }
+            }
+        });
+    }
 });

@@ -33,7 +33,11 @@
         </div>
         <div class="ai-response">
             <h2>🧠 AI Response</h2>
-            <div id="ai-output"></div>
+            <textarea id="ai-output" rows="4"></textarea>
+            <div class="ai-controls">
+                <button type="button" id="speak-now">🔊 Speak Now</button>
+                <button type="button" id="stop-speak" style="display:none;">⏹ Stop</button>
+            </div>
         </div>
         <div class="messages"></div>
         <form class="input-area">
@@ -43,7 +47,6 @@
                 <button type="button" id="mic-button" title="Toggle microphone">🎤</button>
                 <div id="voice-ring" class="voice-ring"></div>
             </div>
-            <button type="button" id="speaker" class="speaker" title="Audio playback">🔊</button>
         </form>
         <canvas id="visualizer" width="300" height="80"></canvas>
         <footer class="footer">

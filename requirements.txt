@@ -7,4 +7,5 @@ pydub
 ffmpeg-python
 TTS
 numpy
+httpx
 
