@@ -18,6 +18,10 @@ This project provides a simple FastAPI interface for interacting with a language
 The UI now includes a microphone button for streaming audio directly to the server. Clicking the button will request microphone permissions and visualize the incoming audio while transcribed text is displayed live in the chat.
 Transcriptions are labeled with "You said:" and words with low confidence scores are highlighted. Hover over a segment to see the recognition confidence and timestamp or replay the audio.
 
+## Dynamic Model Selection
+
+The Settings page allows reloading and selecting models for **TTS**, **STT**, and **LLM**. Place models under `models/tts` or `models/stt`, or use locally installed Ollama models. Remote LLMStudio models can be configured with an API URL and key. Choices are saved to `config.json`.
+
 ## Development
 
 Install dependencies locally (Python 3.11):

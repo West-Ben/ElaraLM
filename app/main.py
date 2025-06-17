@@ -11,7 +11,6 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from transformers import pipeline
 from transformers.pipelines import Pipeline
-import whisper
 import ffmpeg
 from pydub import AudioSegment
 import numpy as np
@@ -19,7 +18,7 @@ import io
 import asyncio
 import base64
 import time
-from . import tts
+from . import tts, stt, llm
 import httpx
 
 
@@ -36,21 +35,10 @@ if not os.path.isfile(LOG_FILE):
     with open(LOG_FILE, 'w', newline='', encoding='utf-8') as f:
         csv.writer(f).writerow(['timestamp', 'prompt', 'response', 'tts_model'])
 
-OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://localhost:11434/api/generate')
-LLMSTUDIO_URL = os.environ.get('LLMSTUDIO_URL')
 
 
 
 text_generator: Pipeline | None = None
-stt_model: whisper.Whisper | None = None
-
-
-def get_stt_model() -> whisper.Whisper:
-    """Lazy load and return the Whisper model."""
-    global stt_model
-    if stt_model is None:
-        stt_model = whisper.load_model("base")
-    return stt_model
 
 
 async def transcribe_audio(data: bytes) -> tuple[str, float]:
@@ -72,10 +60,8 @@ async def transcribe_audio(data: bytes) -> tuple[str, float]:
     samples = np.array(audio_seg.get_array_of_samples()).astype(np.float32)
     samples /= np.iinfo(audio_seg.array_type).max
 
-    model = get_stt_model()
-    result = await asyncio.to_thread(model.transcribe, samples, fp16=False)
-    text = result.get("text", "").strip()
-    confidence = float(np.exp(result.get("avg_logprob", -10)))
+    text, logprob = await asyncio.to_thread(stt.transcribe_audio, samples)
+    confidence = float(np.exp(logprob))
     return text, confidence
 
 
@@ -99,33 +85,10 @@ def get_pipeline() -> Pipeline:
 
 
 async def generate_llm(prompt: str) -> str:
-    """Generate text via LLM Studio or Ollama, falling back to local pipeline."""
-    for url in (LLMSTUDIO_URL, OLLAMA_URL):
-        if not url:
-            continue
-        try:
-            async with httpx.AsyncClient(timeout=60) as client:
-                resp = await client.post(url, json={"prompt": prompt})
-                resp.raise_for_status()
-                data = resp.json()
-                if isinstance(data, dict):
-                    if "response" in data:
-                        return data["response"].strip()
-                    if "result" in data:
-                        return data["result"].strip()
-                    if "text" in data:
-                        return data["text"].strip()
-                    if data.get("choices"):
-                        choice = data["choices"][0]
-                        if isinstance(choice, dict):
-                            txt = choice.get("text") or choice.get("message", {}).get("content")
-                            if txt:
-                                return txt.strip()
-                return str(data)
-        except Exception as e:
-            logger.error("LLM API error for %s: %s", url, e)
-            with open(os.path.join(LOG_DIR, 'llm_errors.log'), 'a', encoding='utf-8') as f:
-                f.write(f"{dt.datetime.utcnow().isoformat()} {url} {e}\n")
+    """Generate text using the selected LLM, falling back to local pipeline."""
+    result = await llm.generate(prompt)
+    if result:
+        return result
     pipeline_fn = get_pipeline()
     try:
         result = pipeline_fn(prompt, max_length=50)
@@ -250,3 +213,38 @@ async def tts_stream(websocket: WebSocket):
             await websocket.send_bytes(b"")
     except WebSocketDisconnect:
         pass
+
+
+@app.get("/stt/models")
+def get_stt_models():
+    """Return available STT model names and current selection."""
+    return {"models": stt.list_models(), "selected": stt.get_selected_model()}
+
+
+@app.post("/stt/select")
+def select_stt_model(name: str):
+    """Set the active STT model."""
+    stt.select_model(name)
+    return {"selected": name}
+
+
+class LLMSelect(BaseModel):
+    source: str
+    name: str
+    url: str | None = None
+    key: str | None = None
+
+
+@app.get("/llm/models")
+async def get_llm_models(source: str = "local"):
+    if source == "remote":
+        models = await llm.list_remote_models()
+    else:
+        models = await llm.list_local_models()
+    return {"models": models}
+
+
+@app.post("/llm/select")
+def select_llm_model(req: LLMSelect):
+    llm.select_model(req.source, req.name, req.url, req.key)
+    return {"selected": req.name, "source": req.source}
