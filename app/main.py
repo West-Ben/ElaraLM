@@ -4,7 +4,8 @@ import logging
 import csv
 import datetime as dt
 import os
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -19,7 +20,8 @@ import asyncio
 import base64
 import time
 from . import tts
-import ollama
+import httpx
+
 
 app = FastAPI(title="ElaraLM")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -34,7 +36,9 @@ if not os.path.isfile(LOG_FILE):
     with open(LOG_FILE, 'w', newline='', encoding='utf-8') as f:
         csv.writer(f).writerow(['timestamp', 'prompt', 'response', 'tts_model'])
 
-OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL', 'llama3')
+OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://localhost:11434/api/generate')
+LLMSTUDIO_URL = os.environ.get('LLMSTUDIO_URL')
+
 
 
 text_generator: Pipeline | None = None
@@ -95,22 +99,39 @@ def get_pipeline() -> Pipeline:
 
 
 async def generate_llm(prompt: str) -> str:
-    try:
-        resp = await asyncio.to_thread(ollama.generate, model=OLLAMA_MODEL, prompt=prompt)
-        if isinstance(resp, dict):
-            return resp.get('response', '').strip()
-        return str(resp)
-    except Exception as e:
-        logger.error("LLM unreachable: %s", e)
-        with open(os.path.join(LOG_DIR, 'llm_errors.log'), 'a', encoding='utf-8') as f:
-            f.write(f"{dt.datetime.utcnow().isoformat()} {e}\n")
-        # fall back to local pipeline if available
-        pipeline_fn = get_pipeline()
+    """Generate text via LLM Studio or Ollama, falling back to local pipeline."""
+    for url in (LLMSTUDIO_URL, OLLAMA_URL):
+        if not url:
+            continue
         try:
-            result = pipeline_fn(prompt, max_length=50)
-            return result[0]["generated_text"]
-        except Exception:
-            return f"[LLM unreachable] {e}"
+            async with httpx.AsyncClient(timeout=60) as client:
+                resp = await client.post(url, json={"prompt": prompt})
+                resp.raise_for_status()
+                data = resp.json()
+                if isinstance(data, dict):
+                    if "response" in data:
+                        return data["response"].strip()
+                    if "result" in data:
+                        return data["result"].strip()
+                    if "text" in data:
+                        return data["text"].strip()
+                    if data.get("choices"):
+                        choice = data["choices"][0]
+                        if isinstance(choice, dict):
+                            txt = choice.get("text") or choice.get("message", {}).get("content")
+                            if txt:
+                                return txt.strip()
+                return str(data)
+        except Exception as e:
+            logger.error("LLM API error for %s: %s", url, e)
+            with open(os.path.join(LOG_DIR, 'llm_errors.log'), 'a', encoding='utf-8') as f:
+                f.write(f"{dt.datetime.utcnow().isoformat()} {url} {e}\n")
+    pipeline_fn = get_pipeline()
+    try:
+        result = pipeline_fn(prompt, max_length=50)
+        return result[0]["generated_text"]
+    except Exception as e:
+        return f"[LLM unreachable] {e}"
 
 
 def log_interaction(prompt: str, response: str) -> None:
@@ -196,6 +217,25 @@ def select_tts_model(name: str):
     """Set the active TTS model."""
     tts.select_model(name)
     return {"selected": name}
+
+
+@app.get("/tts/available")
+def available_tts_models():
+    """Return remote Coqui TTS model names."""
+    return {"models": tts.list_remote_models()}
+
+
+class DownloadRequest(BaseModel):
+    name: str
+
+
+@app.post("/tts/download")
+def download_tts_model(req: DownloadRequest):
+    try:
+        local = tts.download_model(req.name)
+        return {"model": local}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
 
 
 @app.websocket("/ws/tts")

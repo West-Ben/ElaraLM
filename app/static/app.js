@@ -59,6 +59,7 @@ function setup() {
             const text = chatInput.value.trim();
             if (!text) return;
             chatInput.value = '';
+            appendMessage(text, 'user');
             const res = await fetch('/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -70,6 +71,8 @@ function setup() {
                 if (ttsTimer) clearTimeout(ttsTimer);
                 ttsTimer = setTimeout(() => speakText(aiOutputElem.value), 1000);
             }
+            appendMessage(data.result, 'assistant');
+
         });
     }
     if (speakBtn && aiOutputElem) {

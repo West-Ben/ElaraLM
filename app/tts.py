@@ -7,10 +7,19 @@ from typing import List, AsyncIterator
 
 import numpy as np
 from TTS.api import TTS as CoquiTTS
+from TTS.utils.manage import ModelManager
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', 'models', 'tts')
 _current_model: str | None = None
 _engine: CoquiTTS | None = None
+_manager: ModelManager | None = None
+
+
+def _get_manager(output_prefix: str | None = None) -> ModelManager:
+    global _manager
+    if output_prefix or _manager is None:
+        _manager = ModelManager(output_prefix=output_prefix, progress_bar=False)
+    return _manager
 
 
 def _load_config(name: str) -> dict:
@@ -29,6 +38,16 @@ def list_models() -> List[str]:
             if os.path.isfile(os.path.join(MODELS_DIR, n, 'config.json'))]
 
 
+def list_remote_models() -> List[str]:
+    try:
+        mgr = _get_manager()
+        if hasattr(mgr, 'list_tts_models'):
+            return mgr.list_tts_models()
+        return mgr.list_models()
+    except Exception:
+        return []
+
+
 def _init_engine(name: str) -> CoquiTTS:
     cfg = _load_config(name)
     if cfg.get('type') != 'coqui':
@@ -45,6 +64,30 @@ def _init_engine(name: str) -> CoquiTTS:
         if 'vocoder_name' in cfg:
             args['vocoder_name'] = cfg['vocoder_name']
     return CoquiTTS(progress_bar=False, **args)
+
+
+def download_model(remote_name: str, local_name: str | None = None) -> str:
+    """Download a model from Coqui and store under models/tts."""
+    if local_name is None:
+        local_name = remote_name.split('/')[-1].replace('-', '_')
+    dest = os.path.join(MODELS_DIR, local_name)
+    if os.path.isfile(os.path.join(dest, 'config.json')):
+        return local_name
+    os.makedirs(dest, exist_ok=True)
+    mgr = _get_manager(output_prefix=dest)
+    model_path, config_path, info = mgr.download_model(remote_name)
+    cfg = {
+        'type': 'coqui',
+        'model_path': os.path.relpath(model_path, dest),
+        'config_path': os.path.relpath(config_path, dest),
+    }
+    if info.get('default_vocoder'):
+        vp, vc, _ = mgr.download_model(info['default_vocoder'])
+        cfg['vocoder_path'] = os.path.relpath(vp, dest)
+        cfg['vocoder_config_path'] = os.path.relpath(vc, dest)
+    with open(os.path.join(dest, 'config.json'), 'w', encoding='utf-8') as f:
+        json.dump(cfg, f)
+    return local_name
 
 
 def select_model(name: str) -> None:
