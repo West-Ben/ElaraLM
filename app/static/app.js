@@ -59,19 +59,28 @@ function setup() {
             const text = chatInput.value.trim();
             if (!text) return;
             chatInput.value = '';
-            appendMessage(text, 'user');
-            const res = await fetch('/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text })
-            });
-            const data = await res.json();
+            appendMessage(text, 'user', Date.now());
+            let result = '';
+            try {
+                const res = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const data = await res.json();
+                result = data.result;
+            } catch (err) {
+                result = '';
+            }
+            if (!result || result.startsWith('[LLM unreachable') || result.includes('Model unavailable')) {
+                result = 'LLM not found';
+            }
             if (aiOutputElem) {
-                aiOutputElem.value = data.result;
+                aiOutputElem.value = result;
                 if (ttsTimer) clearTimeout(ttsTimer);
                 ttsTimer = setTimeout(() => speakText(aiOutputElem.value), 1000);
             }
-            appendMessage(data.result, 'assistant');
+            appendMessage(result, 'assistant', Date.now());
 
         });
     }
@@ -145,7 +154,8 @@ function beginStreaming(stream) {
         const data = JSON.parse(event.data);
         appendTranscription(data.text, data.confidence, data.timestamp, data.audio);
         if (data.text) {
-            appendMessage(data.text, 'user');
+            const ts = data.timestamp ? data.timestamp * 1000 : Date.now();
+            appendMessage(data.text, 'user', ts);
         }
     };
 
@@ -227,11 +237,18 @@ function visualize() {
     draw();
 }
 
-function appendMessage(text, role = 'user') {
+function appendMessage(text, role = 'user', timestamp = Date.now()) {
     const messagesDiv = document.querySelector('.messages');
     const div = document.createElement('div');
     div.className = `message ${role}`;
-    div.textContent = text;
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = `${role === 'user' ? 'You' : 'AI'} • ${new Date(timestamp).toLocaleTimeString()}`;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    div.appendChild(meta);
+    div.appendChild(bubble);
     messagesDiv.appendChild(div);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
