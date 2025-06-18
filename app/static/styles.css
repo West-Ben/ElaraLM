@@ -336,3 +336,46 @@ body {
     background: #6200ee;
     color: #fff;
 }
+
+.settings-wrapper {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    font-size: 1rem;
+}
+
+.settings-wrapper h1 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.settings-wrapper label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 8px;
+}
+
+.settings-wrapper select,
+.settings-wrapper input[type="number"],
+.settings-wrapper button {
+    padding: 8px 12px;
+    font-size: 1rem;
+    margin-right: 10px;
+}
+
+.settings-wrapper input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+}
+
+.settings-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
