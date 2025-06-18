@@ -18,45 +18,64 @@
 </header>
 <div class="settings-wrapper">
     <h1>Settings</h1>
-    <label>
-        <input type="checkbox" id="voice-toggle">
-        Voice Activation
-    </label>
-    <label>
-        Confidence Threshold
-        <input type="number" id="confidence-threshold" min="0" max="1" step="0.05">
-    </label>
-    <label>
-        <input type="checkbox" id="feedback-toggle" checked>
-        Enable Transcription Feedback
-    </label>
-    <label>
-        Feedback Mode
-        <select id="feedback-mode">
-            <option value="persistent">Persistent</option>
-            <option value="temporary">Temporary</option>
-        </select>
-    </label>
-    <label>
-        Select Text-to-Speech Model
-        <select id="tts-select"></select>
-        <button id="reload-tts" type="button">Reload Models</button>
-        <button id="add-tts" type="button">Add Model</button>
-    </label>
-    <label>
-        Select Speech-to-Text Model
-        <select id="stt-select"></select>
-        <button id="reload-stt" type="button">Reload Models</button>
-    </label>
-    <label>
-        LLM Source
-        <select id="llm-source">
-            <option value="local">Local (Ollama)</option>
-            <option value="remote">Remote</option>
-        </select>
-        <select id="llm-select"></select>
-        <button id="reload-llm" type="button">Reload</button>
-    </label>
+
+    <div class="settings-section">
+        <label>
+            <input type="checkbox" id="voice-toggle">
+            Voice Activation
+        </label>
+        <label>
+            Confidence Threshold
+            <input type="number" id="confidence-threshold" min="0" max="1" step="0.05">
+        </label>
+    </div>
+
+    <div class="settings-section">
+        <label>
+            <input type="checkbox" id="feedback-toggle" checked>
+            Enable Transcription Feedback
+        </label>
+        <label>
+            Feedback Mode
+            <select id="feedback-mode">
+                <option value="persistent">Persistent</option>
+                <option value="temporary">Temporary</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="settings-section">
+        <label>
+            Select Text-to-Speech Model
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <select id="tts-select"></select>
+                <button id="reload-tts" type="button">Reload Models</button>
+                <button id="add-tts" type="button">Add Model</button>
+            </div>
+        </label>
+
+        <label>
+            Select Speech-to-Text Model
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <select id="stt-select"></select>
+                <button id="reload-stt" type="button">Reload Models</button>
+            </div>
+        </label>
+    </div>
+
+    <div class="settings-section">
+        <label>
+            LLM Source
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <select id="llm-source">
+                    <option value="local">Local (Ollama)</option>
+                    <option value="remote">Remote</option>
+                </select>
+                <select id="llm-select"></select>
+                <button id="reload-llm" type="button">Reload</button>
+            </div>
+        </label>
+    </div>
 </div>
 <script src="/static/settings.js"></script>
 </body>
