@@ -63,7 +63,16 @@ def _init_engine(name: str) -> CoquiTTS:
         args['model_name'] = cfg.get('model_name')
         if 'vocoder_name' in cfg:
             args['vocoder_name'] = cfg['vocoder_name']
-    return CoquiTTS(progress_bar=False, **args)
+    engine = CoquiTTS(progress_bar=False, **args)
+    # Some versions of Coqui TTS do not expose ``is_multi_speaker`` or
+    # ``is_multi_lingual`` attributes which newer releases rely on when
+    # validating arguments. Add sensible defaults if they are missing to
+    # avoid attribute errors when calling ``tts``.
+    if not hasattr(engine, "is_multi_speaker"):
+        engine.is_multi_speaker = bool(getattr(engine, "speakers", []))
+    if not hasattr(engine, "is_multi_lingual"):
+        engine.is_multi_lingual = bool(getattr(engine, "languages", []))
+    return engine
 
 
 def download_model(remote_name: str, local_name: str | None = None) -> str:
@@ -121,10 +130,12 @@ async def synthesize_stream(text: str) -> AsyncIterator[bytes]:
         if not models:
             raise RuntimeError('No TTS models available')
         select_model(models[0])
-    # --- Begin change: handle multi-speaker models ---
+    # --- Begin change: handle multi-speaker and multi-lingual models ---
     tts_kwargs = {}
     if hasattr(_engine, "speakers") and _engine.speakers:
         tts_kwargs["speaker"] = _engine.speakers[0]
+    if hasattr(_engine, "languages") and _engine.languages:
+        tts_kwargs["language"] = _engine.languages[0]
     audio = await asyncio.to_thread(_engine.tts, text, **tts_kwargs)
     # --- End change ---
     sr = getattr(_engine.synthesizer, 'output_sample_rate', 22050)
