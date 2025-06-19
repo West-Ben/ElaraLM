@@ -64,14 +64,22 @@ def _init_engine(name: str) -> CoquiTTS:
         if 'vocoder_name' in cfg:
             args['vocoder_name'] = cfg['vocoder_name']
     engine = CoquiTTS(progress_bar=False, **args)
-    # Some versions of Coqui TTS do not expose ``is_multi_speaker`` or
-    # ``is_multi_lingual`` attributes which newer releases rely on when
-    # validating arguments. Add sensible defaults if they are missing to
-    # avoid attribute errors when calling ``tts``.
-    if not hasattr(engine, "is_multi_speaker"):
-        engine.is_multi_speaker = bool(getattr(engine, "speakers", []))
-    if not hasattr(engine, "is_multi_lingual"):
-        engine.is_multi_lingual = bool(getattr(engine, "languages", []))
+
+    # Some versions of Coqui TTS do not define ``is_multi_speaker`` or
+    # ``is_multi_lingual`` attributes. Older releases define them as
+    # read-only properties. Only inject defaults when the attributes are
+    # completely missing to avoid triggering ``AttributeError`` on
+    # instances where they are read-only.
+    if not hasattr(type(engine), "is_multi_speaker") and not hasattr(engine, "is_multi_speaker"):
+        try:
+            engine.is_multi_speaker = bool(getattr(engine, "speakers", []))
+        except Exception:
+            pass
+    if not hasattr(type(engine), "is_multi_lingual") and not hasattr(engine, "is_multi_lingual"):
+        try:
+            engine.is_multi_lingual = bool(getattr(engine, "languages", []))
+        except Exception:
+            pass
     return engine
 
 
