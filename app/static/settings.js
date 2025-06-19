@@ -35,6 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const ttsSelect = document.getElementById('tts-select');
     const reloadBtn = document.getElementById('reload-tts');
     const addBtn = document.getElementById('add-tts');
+    // Modal elements
+    const ttsModal = document.getElementById('tts-modal');
+    const ttsModalSelect = document.getElementById('tts-modal-select');
+    const ttsModalDownload = document.getElementById('tts-modal-download');
+    const ttsModalCancel = document.getElementById('tts-modal-cancel');
+    const ttsModalStatus = document.getElementById('tts-modal-status');
 
     async function loadTtsModels() {
         const res = await fetch('/tts/models');
@@ -57,12 +63,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     if (reloadBtn) reloadBtn.addEventListener('click', loadTtsModels);
-    if (addBtn) {
+    if (addBtn && ttsModal && ttsModalSelect && ttsModalDownload && ttsModalCancel) {
         addBtn.addEventListener('click', async () => {
-            const res = await fetch('/tts/available');
-            const data = await res.json();
-            const name = prompt('Enter model name to download:\n' + data.models.join('\n'));
-            if (name) {
+            ttsModalStatus.textContent = '';
+            ttsModalSelect.innerHTML = '<option>Loading...</option>';
+            ttsModal.style.display = 'flex';
+            try {
+                const res = await fetch('/tts/available');
+                const data = await res.json();
+                ttsModalSelect.innerHTML = '';
+                if (data.models && data.models.length) {
+                    data.models.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m;
+                        opt.textContent = m;
+                        ttsModalSelect.appendChild(opt);
+                    });
+                } else {
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = 'No models available';
+                    ttsModalSelect.appendChild(opt);
+                }
+            } catch (err) {
+                ttsModalSelect.innerHTML = '';
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Error loading models';
+                ttsModalSelect.appendChild(opt);
+            }
+        });
+
+        ttsModalCancel.addEventListener('click', () => {
+            ttsModal.style.display = 'none';
+            ttsModalStatus.textContent = '';
+        });
+
+        ttsModalDownload.addEventListener('click', async () => {
+            const name = ttsModalSelect.value;
+            if (!name) {
+                ttsModalStatus.textContent = 'Please select a model.';
+                return;
+            }
+            ttsModalStatus.textContent = 'Downloading...';
+            try {
                 const resp = await fetch('/tts/download', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -70,11 +114,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (resp.ok) {
                     await loadTtsModels();
-                    alert('Model downloaded');
+                    ttsModalStatus.textContent = 'Model downloaded!';
+                    setTimeout(() => {
+                        ttsModal.style.display = 'none';
+                        ttsModalStatus.textContent = '';
+                    }, 1000);
                 } else {
                     const err = await resp.json();
-                    alert('Error: ' + (err.error || 'unknown'));
+                    ttsModalStatus.textContent = 'Error: ' + (err.error || 'unknown');
                 }
+            } catch (e) {
+                ttsModalStatus.textContent = 'Error downloading model.';
             }
         });
     }

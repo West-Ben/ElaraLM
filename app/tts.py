@@ -121,7 +121,12 @@ async def synthesize_stream(text: str) -> AsyncIterator[bytes]:
         if not models:
             raise RuntimeError('No TTS models available')
         select_model(models[0])
-    audio = await asyncio.to_thread(_engine.tts, text)
+    # --- Begin change: handle multi-speaker models ---
+    tts_kwargs = {}
+    if hasattr(_engine, "speakers") and _engine.speakers:
+        tts_kwargs["speaker"] = _engine.speakers[0]
+    audio = await asyncio.to_thread(_engine.tts, text, **tts_kwargs)
+    # --- End change ---
     sr = getattr(_engine.synthesizer, 'output_sample_rate', 22050)
     wav_bytes = _array_to_wav_bytes(audio, sr)
     for i in range(0, len(wav_bytes), 2048):

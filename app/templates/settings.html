@@ -77,6 +77,20 @@
         </label>
     </div>
 </div>
+
+<!-- Modal for TTS model download -->
+<div id="tts-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:999; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:24px 32px; border-radius:8px; min-width:300px; box-shadow:0 2px 8px rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:16px; align-items:stretch;">
+        <label for="tts-modal-select" style="font-weight:600;">Available TTS Models</label>
+        <select id="tts-modal-select"></select>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button id="tts-modal-download" type="button">Download</button>
+            <button id="tts-modal-cancel" type="button">Cancel</button>
+        </div>
+        <div id="tts-modal-status" style="font-size:0.9em; color:#b00020;"></div>
+    </div>
+</div>
+
 <script src="/static/settings.js"></script>
 </body>
 </html>
