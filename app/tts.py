@@ -64,6 +64,7 @@ def _init_engine(name: str) -> CoquiTTS:
         if 'vocoder_name' in cfg:
             args['vocoder_name'] = cfg['vocoder_name']
     engine = CoquiTTS(progress_bar=False, **args)
+
     # Some versions of Coqui TTS do not define ``is_multi_speaker`` or
     # ``is_multi_lingual`` attributes. Older releases define them as
     # read-only properties. Only inject defaults when the attributes are
