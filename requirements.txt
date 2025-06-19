@@ -5,7 +5,7 @@ jinja2
 openai-whisper
 pydub
 ffmpeg-python
-TTS
+coqui-tts
 numpy
 httpx
 
