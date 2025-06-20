@@ -29,9 +29,9 @@ let speakWs = null;
 let currentAudio = null;
 
 function setup() {
-    micButton = document.getElementById('mic-button');
-    visualizerCanvas = document.getElementById('visualizer');
-    sttOutput = document.getElementById('stt-output');
+    micButton = document.getElementById('mic-button') || document.getElementById('test-mic');
+    visualizerCanvas = document.getElementById('visualizer') || document.getElementById('test-wave');
+    sttOutput = document.getElementById('stt-output') || document.getElementById('test-transcript');
     tooltip = document.getElementById('tooltip');
     voiceIndicator = document.getElementById('voice-indicator');
     voiceRing = document.getElementById('voice-ring');
@@ -259,6 +259,10 @@ function appendTranscription(text, confidence, timestamp, audioB64) {
     feedbackEnabled = localStorage.getItem('feedbackEnabled') !== 'false';
     feedbackMode = localStorage.getItem('feedbackMode') || feedbackMode;
 
+    if (sttOutput.tagName === 'TEXTAREA') {
+        sttOutput.value += text + ' ';
+        return;
+    }
     const span = document.createElement('span');
     if (feedbackEnabled && confidence !== undefined && confidence < feedbackThreshold) {
         span.classList.add('uncertain');

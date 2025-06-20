@@ -20,6 +20,18 @@
     </nav>
 </header>
 <main class="chat-wrapper">
+    <div class="stt-container">
+        <h2>Speech Input</h2>
+        <div id="stt-output" class="stt-text"></div>
+        <div id="tooltip" class="tooltip" style="display:none;"></div>
+    </div>
+    <div class="ai-response">
+        <textarea id="ai-output" rows="3"></textarea>
+        <div class="ai-controls">
+            <button type="button" id="speak-now">Speak</button>
+            <button type="button" id="stop-speak" style="display:none;">Stop</button>
+        </div>
+    </div>
     <div class="messages"></div>
     <form class="input-area">
         <input type="text" placeholder="Send your message" />

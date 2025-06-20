@@ -210,6 +210,13 @@ body {
     z-index: 10;
 }
 
+.test-transcript {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 10px;
+    resize: vertical;
+}
+
 .stt-text button.replay {
     background: none;
     border: none;

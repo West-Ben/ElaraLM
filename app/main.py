@@ -234,17 +234,6 @@ async def tts_stream(websocket: WebSocket):
         logger.info("/ws/tts disconnected")
 
 
-@app.get("/stt/models")
-def get_stt_models():
-    """Return available STT model names and current selection."""
-    return {"models": stt.list_models(), "selected": stt.get_selected_model()}
-
-
-@app.post("/stt/select")
-def select_stt_model(name: str):
-    """Set the active STT model."""
-    stt.select_model(name)
-    return {"selected": name}
 
 
 class LLMSelect(BaseModel):

@@ -25,8 +25,9 @@
     </div>
     <div class="tab-content" id="stt-tab">
         <button id="test-mic" class="mic-btn">🎤</button>
+        <div class="voice-indicator" id="voice-indicator"></div>
         <canvas id="test-wave" width="300" height="80"></canvas>
-        <div id="test-transcript" class="test-transcript"></div>
+        <textarea id="test-transcript" class="test-transcript" rows="3" readonly></textarea>
     </div>
     <div class="tab-content" id="tts-tab" style="display:none;">
         <input type="text" id="tts-input" placeholder="Type something to speak..." />
