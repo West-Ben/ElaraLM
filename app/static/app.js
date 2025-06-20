@@ -159,8 +159,14 @@ function beginStreaming(stream) {
 
     mediaRecorder = new MediaRecorder(stream);
     mediaRecorder.addEventListener('dataavailable', (event) => {
-        if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
+        if (event.data.size > 0 && ws && ws.readyState === WebSocket.OPEN) {
             ws.send(event.data);
+        }
+    });
+    mediaRecorder.addEventListener('stop', () => {
+        if (ws) {
+            ws.close();
+            ws = null;
         }
     });
     mediaRecorder.start(250);
@@ -172,8 +178,7 @@ function stopStreaming() {
     if (mediaRecorder) {
         mediaRecorder.stop();
         mediaRecorder = null;
-    }
-    if (ws) {
+    } else if (ws) {
         ws.close();
         ws = null;
     }
