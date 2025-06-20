@@ -20,7 +20,6 @@ let feedbackEnabled = localStorage.getItem('feedbackEnabled') !== 'false';
 let feedbackMode = localStorage.getItem('feedbackMode') || 'persistent';
 let aiOutputElem = null;
 let chatInput = null;
-let speakBtn = null;
 let stopBtn = null;
 let ttsTimer = null;
 let ttsQueue = [];
@@ -40,7 +39,6 @@ function setup() {
     aiOutputElem = document.getElementById('ai-output');
     chatInput = document.querySelector('.input-area input[type="text"]');
     const chatForm = document.querySelector('.input-area');
-    speakBtn = document.getElementById('speak-now');
     stopBtn = document.getElementById('stop-speak');
 
     voiceActivated = localStorage.getItem('voiceActivated') === 'true';
@@ -60,6 +58,9 @@ function setup() {
             if (!text) return;
             chatInput.value = '';
             appendMessage(text, 'user', Date.now());
+            if (aiOutputElem) {
+                aiOutputElem.value += `user: ${text}\n`;
+            }
             let result = '';
             try {
                 const res = await fetch('/generate', {
@@ -76,18 +77,12 @@ function setup() {
                 result = 'LLM not found';
             }
             if (aiOutputElem) {
-                aiOutputElem.value = result;
+                aiOutputElem.value += `assistant: ${result}\n`;
                 if (ttsTimer) clearTimeout(ttsTimer);
-                ttsTimer = setTimeout(() => speakText(aiOutputElem.value), 1000);
+                ttsTimer = setTimeout(() => speakText(result), 1000);
             }
             appendMessage(result, 'assistant', Date.now());
 
-        });
-    }
-    if (speakBtn && aiOutputElem) {
-        speakBtn.addEventListener('click', () => {
-            if (ttsTimer) { clearTimeout(ttsTimer); ttsTimer = null; }
-            speakText(aiOutputElem.value);
         });
     }
     if (stopBtn) {
@@ -156,6 +151,9 @@ function beginStreaming(stream) {
         if (data.text) {
             const ts = data.timestamp ? data.timestamp * 1000 : Date.now();
             appendMessage(data.text, 'user', ts);
+            if (aiOutputElem) {
+                aiOutputElem.value += `user: ${data.text}\n`;
+            }
         }
     };
 
