@@ -129,30 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const sttSelect = document.getElementById('stt-select');
-    const reloadStt = document.getElementById('reload-stt');
-
-    async function loadSttModels() {
-        const res = await fetch('/stt/models');
-        const data = await res.json();
-        if (!sttSelect) return;
-        sttSelect.innerHTML = '';
-        data.models.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m;
-            opt.textContent = m;
-            if (data.selected === m) opt.selected = true;
-            sttSelect.appendChild(opt);
-        });
-    }
-
-    if (sttSelect) {
-        loadSttModels();
-        sttSelect.addEventListener('change', async () => {
-            await fetch('/stt/select?name=' + encodeURIComponent(sttSelect.value), { method: 'POST' });
-        });
-    }
-    if (reloadStt) reloadStt.addEventListener('click', loadSttModels);
 
     const llmSelect = document.getElementById('llm-select');
     const llmSource = document.getElementById('llm-source');
