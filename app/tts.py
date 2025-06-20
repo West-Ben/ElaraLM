@@ -29,8 +29,11 @@ def _load_config(name: str) -> dict:
     path = os.path.join(MODELS_DIR, name, "config.json")
     try:
         with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
+            cfg = json.load(f)
+            logger.debug("Loaded TTS config %s: %s", name, cfg)
+            return cfg
+    except Exception as e:
+        logger.warning("Failed to read TTS config %s: %s", path, e)
         return {}
 
 
@@ -71,6 +74,7 @@ def _init_engine(name: str) -> CoquiTTS:
         args["model_name"] = cfg.get("model_name")
         if "vocoder_name" in cfg:
             args["vocoder_name"] = cfg["vocoder_name"]
+    logger.debug("Initializing TTS engine '%s' with args: %s", name, args)
     engine = CoquiTTS(progress_bar=False, **args)
 
     # Some versions of Coqui TTS do not define ``is_multi_speaker`` or
@@ -92,6 +96,9 @@ def _init_engine(name: str) -> CoquiTTS:
             engine.is_multi_lingual = bool(getattr(engine, "languages", []))
         except Exception:
             pass
+    logger.debug(
+        "Engine '%s' speakers=%s languages=%s", name, getattr(engine, "speakers", None), getattr(engine, "languages", None)
+    )
     return engine
 
 
@@ -123,6 +130,7 @@ def select_model(name: str) -> None:
     global _current_model, _engine
     if name not in list_models():
         raise ValueError(f"Model '{name}' not found")
+    logger.debug("Selecting TTS model '%s'", name)
     _engine = _init_engine(name)
     _current_model = name
     logger.info("Selected TTS model: %s", name)
@@ -133,6 +141,7 @@ def get_selected_model() -> str | None:
 
 
 def _array_to_wav_bytes(arr: np.ndarray, sample_rate: int) -> bytes:
+    logger.debug("Converting audio array of length %d to WAV (sr=%d)", len(arr), sample_rate)
     arr = np.clip(arr, -1.0, 1.0)
     arr_i16 = (arr * 32767).astype(np.int16)
     buffer = io.BytesIO()
@@ -141,7 +150,9 @@ def _array_to_wav_bytes(arr: np.ndarray, sample_rate: int) -> bytes:
         wf.setsampwidth(2)
         wf.setframerate(sample_rate)
         wf.writeframes(arr_i16.tobytes())
-    return buffer.getvalue()
+    wav = buffer.getvalue()
+    logger.debug("Generated WAV of %d bytes", len(wav))
+    return wav
 
 
 async def synthesize_stream(text: str) -> AsyncIterator[bytes]:
@@ -158,9 +169,11 @@ async def synthesize_stream(text: str) -> AsyncIterator[bytes]:
         tts_kwargs["speaker"] = _engine.speakers[0]
     if hasattr(_engine, "is_multi_lingual") and _engine.languages:
         tts_kwargs["is_multi_lingual"] = _engine.languages[0]
-        audio = await asyncio.to_thread(_engine.tts, text, **tts_kwargs)
-        # --- End change ---
-        sr = getattr(_engine.synthesizer, 'output_sample_rate', 22050)
-        wav_bytes = _array_to_wav_bytes(audio, sr)
-        for i in range(0, len(wav_bytes), 2048):
-            yield wav_bytes[i:i+2048]
+    logger.debug("TTS kwargs: %s", tts_kwargs)
+    audio = await asyncio.to_thread(_engine.tts, text, **tts_kwargs)
+    # --- End change ---
+    sr = getattr(_engine.synthesizer, 'output_sample_rate', 22050)
+    wav_bytes = _array_to_wav_bytes(audio, sr)
+    logger.debug("Streaming WAV of %d bytes at %d Hz", len(wav_bytes), sr)
+    for i in range(0, len(wav_bytes), 2048):
+        yield wav_bytes[i:i+2048]
